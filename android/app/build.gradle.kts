@@ -1,6 +1,19 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+// Release signing — keystore + passwords live outside the repo.
+// Path is configured in gradle.properties (V2X2MAP_KEYSTORE_PROPERTIES)
+// or falls back to ../../.deploy-keys/v2x2map-keystore.properties.
+val keystorePropsPath: String = providers.gradleProperty("V2X2MAP_KEYSTORE_PROPERTIES")
+    .getOrElse(rootDir.resolve("../../.deploy-keys/v2x2map-keystore.properties").absolutePath)
+val keystoreProps = Properties().apply {
+    val f = file(keystorePropsPath)
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -15,10 +28,22 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        if (keystoreProps.isNotEmpty()) {
+            create("release") {
+                storeFile = File(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 
