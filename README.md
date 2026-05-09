@@ -1,4 +1,4 @@
-# V2X2MAP — See the cars talk.
+# V2X2MAP — Wardriving 2.0
 
 **V2X2MAP** is an open-source receiver and live map for **ITS-G5 / V2X** traffic — the 5.9 GHz IEEE 802.11p messages cars and roadside infrastructure send to coordinate.
 
