@@ -19,6 +19,7 @@ from __future__ import annotations
 import io
 import os
 import re
+import subprocess
 import sys
 import threading
 import time
@@ -192,25 +193,82 @@ class SetupWizard:
     def _build_step4(self, nb):
         f = ttk.Frame(nb, padding=20); nb.add(f, text="4. WiFi")
         ttk.Label(f, text="WiFi networks", font=("Segoe UI", 12, "bold")).pack(anchor="w")
-        ttk.Label(f, text="The device tries these in order. Leave SSID blank to skip.",
-                  wraplength=560).pack(anchor="w", pady=(4,14))
+        ttk.Label(f, text="The device tries these in order. Use Scan to pick from visible networks.",
+                  wraplength=560).pack(anchor="w", pady=(4,10))
 
-        def wifi_row(parent, label, ssid_var, pass_var):
+        # Scan button + status
+        scan_bar = ttk.Frame(f); scan_bar.pack(fill="x", pady=(0,8))
+        self.scan_btn = ttk.Button(scan_bar, text="🔍 Scan for WiFi networks",
+                                   command=self._scan_wifi)
+        self.scan_btn.pack(side="left")
+        self.scan_status = ttk.Label(scan_bar, text="", foreground="gray")
+        self.scan_status.pack(side="left", padx=(10,0))
+
+        def wifi_row(parent, label, ssid_var, pass_var, combo_ref: list):
             ttk.Label(parent, text=label, font=("Segoe UI", 9, "bold")).pack(anchor="w")
-            r = ttk.Frame(parent); r.pack(fill="x", pady=(2,8))
+            r = ttk.Frame(parent); r.pack(fill="x", pady=(2,10))
             ttk.Label(r, text="SSID:", width=10).grid(row=0, column=0, sticky="w")
-            ttk.Entry(r, textvariable=ssid_var, width=30).grid(row=0, column=1, sticky="w", padx=(4,0))
+            combo = ttk.Combobox(r, textvariable=ssid_var, width=28, values=[])
+            combo.grid(row=0, column=1, sticky="w", padx=(4,0))
+            combo_ref.append(combo)
             ttk.Label(r, text="Password:", width=10).grid(row=1, column=0, sticky="w", pady=(4,0))
             ttk.Entry(r, textvariable=pass_var, show="*", width=30).grid(row=1, column=1, sticky="w", padx=(4,0))
 
-        wifi_row(f, "Network 1 (preferred):", self.wifi1_ssid, self.wifi1_pass)
-        wifi_row(f, "Network 2 (fallback):",  self.wifi2_ssid, self.wifi2_pass)
+        self._ssid_combos: list[ttk.Combobox] = []
+        c1: list = []; c2: list = []
+        wifi_row(f, "Network 1 (preferred):", self.wifi1_ssid, self.wifi1_pass, c1)
+        wifi_row(f, "Network 2 (fallback):",  self.wifi2_ssid, self.wifi2_pass, c2)
+        self._ssid_combos = [c1[0], c2[0]]
+
         ttk.Checkbutton(f, text="Connect to any open (unauthenticated) AP as last resort",
                         variable=self.wifi_open).pack(anchor="w", pady=(4,0))
 
         bar = ttk.Frame(f); bar.pack(side="bottom", fill="x", pady=(12,0))
         ttk.Button(bar, text="Next >", command=lambda: self.nb.select(4)).pack(side="right", padx=(0,8))
         ttk.Button(bar, text="< Back", command=lambda: self.nb.select(2)).pack(side="right")
+
+    def _scan_wifi(self):
+        if self._busy: return
+        self.scan_btn.configure(state="disabled")
+        self.scan_status.configure(text="Scanning…")
+        threading.Thread(target=self._scan_worker, daemon=True).start()
+
+    def _scan_worker(self):
+        networks: list[str] = []
+        try:
+            # Windows: netsh wlan show networks
+            out = subprocess.check_output(
+                ["netsh", "wlan", "show", "networks", "mode=bssid"],
+                encoding="utf-8", errors="replace", timeout=10,
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
+            )
+            seen: set[str] = set()
+            for line in out.splitlines():
+                m = re.match(r"\s*SSID\s+\d+\s*:\s*(.+)", line)
+                if m:
+                    ssid = m.group(1).strip()
+                    if ssid and ssid not in seen:
+                        seen.add(ssid)
+                        networks.append(ssid)
+        except FileNotFoundError:
+            # Linux / macOS fallback: nmcli
+            try:
+                out = subprocess.check_output(
+                    ["nmcli", "-t", "-f", "SSID", "dev", "wifi", "list"],
+                    encoding="utf-8", errors="replace", timeout=10,
+                )
+                seen2: set[str] = set()
+                for line in out.splitlines():
+                    ssid = line.strip()
+                    if ssid and ssid not in seen2:
+                        seen2.add(ssid)
+                        networks.append(ssid)
+            except Exception:
+                networks = []
+        except Exception:
+            networks = []
+
+        self.root.after(0, self._on_scan_done, networks)
 
     # ── Step 5: Network ─────────────────────────────────────────────────
     def _build_step5(self, nb):
@@ -236,6 +294,15 @@ class SetupWizard:
         bar = ttk.Frame(f); bar.pack(side="bottom", fill="x", pady=(12,0))
         ttk.Button(bar, text="Next >", command=lambda: self.nb.select(5)).pack(side="right", padx=(0,8))
         ttk.Button(bar, text="< Back", command=lambda: self.nb.select(3)).pack(side="right")
+
+    def _on_scan_done(self, networks: list[str]):
+        self.scan_btn.configure(state="normal")
+        if networks:
+            for combo in self._ssid_combos:
+                combo["values"] = networks
+            self.scan_status.configure(text=f"{len(networks)} network(s) found", foreground="green")
+        else:
+            self.scan_status.configure(text="No networks found (try manual entry)", foreground="gray")
 
     def _on_dhcp_toggle(self):
         state = "disabled" if self.use_dhcp.get() else "normal"
