@@ -393,19 +393,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Auto-follow with speed-adaptive zoom: more zoom when stationary, less
-     *  when fast. Speeds in m/s. */
+    /** Auto-follow: pan the map to keep the current position centred.
+     *  Zoom is left exactly as the user set it — no automatic zoom changes. */
     private fun followLocation(loc: Location) {
-        val pt = GeoPoint(loc.latitude, loc.longitude)
-        val zoom = when {
-            lastSpeedMps < 1f   -> 18.0     // standing
-            lastSpeedMps < 5f   -> 17.0     // walking
-            lastSpeedMps < 14f  -> 16.0     // city ~50 km/h
-            lastSpeedMps < 22f  -> 15.0     // ~80 km/h
-            else                -> 14.0     // highway
-        }
-        binding.map.controller.setZoom(zoom)
-        binding.map.controller.animateTo(pt)
+        binding.map.controller.animateTo(GeoPoint(loc.latitude, loc.longitude))
     }
 
     // -------------------------------------------------------- Recording
