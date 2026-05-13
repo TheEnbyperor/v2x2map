@@ -24,8 +24,8 @@ android {
         applicationId = "org.opentrafficmap.receiver"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.1.9"
+        versionCode = 7
+        versionName = "0.2.0"
     }
 
     signingConfigs {
@@ -45,7 +45,8 @@ android {
             isShrinkResources = false
             // No proguardFiles — keeping bytecode 1:1 with debug, only the
             // signing config and android:debuggable=false differ.
-            signingConfigs.findByName("release")?.let { signingConfig = it }
+            // Use release keystore if available, fall back to debug key for sideloading
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

@@ -135,6 +135,11 @@ object ItsG5Decoder {
             val spatPhase = if (msgType == MsgType.SPATEM)
                 SpatTemParser.extractPhase(p, btpOff) else null
 
+            // GeoNetworking Basic Header byte 0 low nibble = NH field
+            // NH=2 → Secured Packet (IEEE 1609.2 signed/encrypted)
+            val nh = p[basicOff].toInt() and 0x0F
+            val secured = nh == 2
+
             return Decoded(
                 etherType  = et,
                 msgType    = msgType,
@@ -144,6 +149,7 @@ object ItsG5Decoder {
                 speedMps   = if (latLon != null) speed else null,
                 btpDstPort = dstPort,
                 spatPhase  = spatPhase,
+                secured    = secured,
             )
         }
         return Decoded(etherType = et)
@@ -182,20 +188,21 @@ object ItsG5Decoder {
         val speedMps: Double? = null,
         val btpDstPort: Int? = null,
         val spatPhase: SpatTemParser.Phase? = null,
+        val secured: Boolean? = null,  // GN Basic Header NH == 2 → IEEE 1609.2
     )
 
     /** ITS message type. Colors are M3-friendly tones the Marker drawables tint to. */
-    enum class MsgType(val short: String, val color: Int) {
-        UNKNOWN ("?",       0xFF607D8B.toInt()),  // blue grey
-        CAM     ("CAM",     0xFF1976D2.toInt()),  // blue            — vehicle awareness
-        DENM    ("DENM",    0xFFE65100.toInt()),  // orange          — hazard
-        MAPEM   ("MAPEM",   0xFF7B1FA2.toInt()),  // purple          — intersection geometry
-        SPATEM  ("SPATEM",  0xFF388E3C.toInt()),  // green           — signal phase + timing
-        IVIM    ("IVIM",    0xFFC2185B.toInt()),  // pink            — in-vehicle info
-        SREM    ("SREM",    0xFF00838F.toInt()),  // teal            — signal request
-        SSEM    ("SSEM",    0xFF00838F.toInt()),  // teal            — signal status
-        TLM     ("TLM",     0xFFAFB42B.toInt()),  // lime
-        RTCMEM  ("RTCMEM",  0xFF455A64.toInt()),  // dark grey
+    enum class MsgType(val short: String, val color: Int, val label: String) {
+        UNKNOWN ("?",       0xFF607D8B.toInt(), "? – Unbekannt / Unknown"),
+        CAM     ("CAM",     0xFF1976D2.toInt(), "CAM – Fahrzeugposition / Vehicle position"),
+        DENM    ("DENM",    0xFFE65100.toInt(), "DENM – Gefahrenmeldung / Hazard warning"),
+        MAPEM   ("MAPEM",   0xFF7B1FA2.toInt(), "MAPEM – Kreuzungsgeometrie / Intersection map"),
+        SPATEM  ("SPATEM",  0xFF388E3C.toInt(), "SPATEM – Ampelphase / Signal phase & timing"),
+        IVIM    ("IVIM",    0xFFC2185B.toInt(), "IVIM – Fahrzeuginfo / In-vehicle info"),
+        SREM    ("SREM",    0xFF00838F.toInt(), "SREM – Signalanfrage / Signal request"),
+        SSEM    ("SSEM",    0xFF00838F.toInt(), "SSEM – Signalstatus / Signal status"),
+        TLM     ("TLM",     0xFFAFB42B.toInt(), "TLM – Verkehrslicht / Traffic light"),
+        RTCMEM  ("RTCMEM",  0xFF455A64.toInt(), "RTCMEM – Korrekturdaten / Correction data"),
         ;
         companion object {
             fun fromBtpPort(port: Int): MsgType = when (port) {

@@ -16,6 +16,10 @@ object SettingsBus {
     fun interface OnCycleApply    { fun call(c: BluetoothController.CycleConfig) }
     fun interface OnAudioChanged    { fun call(enabled: Boolean) }
     fun interface OnSpatLightChanged { fun call(enabled: Boolean) }
+    fun interface OnKeepScreenOnChanged { fun call() }
+    fun interface OnDarkModeChanged { fun call(on: Boolean) }
+    fun interface OnOwnTrackChanged { fun call(on: Boolean) }
+    fun interface OnResetAll { fun call() }
 
     var onFollowChanged: OnFollowChanged? = null
     var onMqttToggle:    OnMqttToggle?    = null
@@ -24,6 +28,10 @@ object SettingsBus {
     var onCycleApply:    OnCycleApply?    = null
     var onAudioChanged:  OnAudioChanged?  = null
     var onSpatLightChanged: OnSpatLightChanged? = null
+    var onKeepScreenOnChanged: OnKeepScreenOnChanged? = null
+    var onDarkModeChanged: OnDarkModeChanged? = null
+    var onOwnTrackChanged: OnOwnTrackChanged? = null
+    var onResetAll: OnResetAll? = null
 
     @Volatile var liveRecorder: FrameRecorder? = null
     @Volatile var liveBtController: BluetoothController? = null
@@ -37,7 +45,11 @@ object SettingsBus {
     fun downloadVisibleMap()             = onMapDownload?.call()
     fun applyCycle(c: BluetoothController.CycleConfig) = onCycleApply?.call(c)
     fun audioChanged(on: Boolean)        = onAudioChanged?.call(on)
-    fun spatLightChanged(on: Boolean)   = onSpatLightChanged?.call(on)
+    fun spatLightChanged(on: Boolean)    = onSpatLightChanged?.call(on)
+    fun keepScreenOnChanged()            = onKeepScreenOnChanged?.call()
+    fun darkModeChanged(on: Boolean)     = onDarkModeChanged?.call(on)
+    fun ownTrackChanged(on: Boolean)     = onOwnTrackChanged?.call(on)
+    fun resetAll()                       = onResetAll?.call()
 
     fun recorder()        = liveRecorder
     fun btController()    = liveBtController

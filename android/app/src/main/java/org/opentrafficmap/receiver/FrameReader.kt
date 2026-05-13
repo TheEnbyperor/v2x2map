@@ -68,6 +68,7 @@ class FrameReader {
                 headingDeg = d.headingDeg,
                 speedMps   = d.speedMps,
                 spatPhase  = d.spatPhase,
+                secured    = d.secured,
             )
         }
     }

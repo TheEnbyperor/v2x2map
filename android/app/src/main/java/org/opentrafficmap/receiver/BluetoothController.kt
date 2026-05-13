@@ -101,10 +101,10 @@ class BluetoothController(
     @SuppressLint("MissingPermission")
     private fun connectOrScan() {
         if (adapter == null || !adapter.isEnabled) {
-            onState(State.ERROR, "Bluetooth nicht verfügbar"); return
+            onState(State.ERROR, context.getString(R.string.bt_not_available)); return
         }
         if (!hasScanPermission()) {
-            onState(State.ERROR, "BLE-Berechtigung fehlt"); return
+            onState(State.ERROR, context.getString(R.string.bt_perm_missing)); return
         }
         val dev = cachedDevice
         if (dev != null) {
@@ -127,7 +127,7 @@ class BluetoothController(
     @SuppressLint("MissingPermission")
     private fun startScan() {
         val scanner = adapter?.bluetoothLeScanner ?: run {
-            onState(State.ERROR, "BLE-Scanner nicht verfügbar"); return
+            onState(State.ERROR, context.getString(R.string.bt_scanner_na)); return
         }
         val settingsBuilder = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -138,14 +138,18 @@ class BluetoothController(
                 .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
         }
         scanning = true
-        onState(State.SCANNING, "Suche $DEVICE_NAME…")
+        onState(State.SCANNING, context.getString(R.string.bt_searching, DEVICE_NAME))
         try {
             scanner.startScan(null, settingsBuilder.build(), scanCallback)
         } catch (e: SecurityException) {
-            onState(State.ERROR, "Scan verweigert"); scanning = false; return
+            onState(State.ERROR, context.getString(R.string.bt_perm_denied)); scanning = false; return
         }
         mainHandler.postDelayed({
-            if (scanning) { stopScan(); onState(State.ERROR, "$DEVICE_NAME nicht gefunden") }
+            if (scanning) {
+                stopScan()
+                onState(State.SCANNING, reconnectLabel())
+                scheduleReconnect()   // retry instead of giving up
+            }
         }, SCAN_TIMEOUT_MS)
     }
 
@@ -165,8 +169,8 @@ class BluetoothController(
     private fun cancelWatchdog() = mainHandler.removeCallbacks(cccdWatchdog)
 
     private fun reconnectLabel(): String =
-        if (retryCount == 0) "Verbinde…"
-        else "Reconnect #$retryCount (${backoffDelay(retryCount) / 1000} s)…"
+        if (retryCount == 0) context.getString(R.string.bt_connecting_label)
+        else context.getString(R.string.bt_reconnect, retryCount, backoffDelay(retryCount) / 1000)
 
     // ── scan callback ──────────────────────────────────────────────────────
 
@@ -180,13 +184,13 @@ class BluetoothController(
             if (name != DEVICE_NAME && SERVICE_UUID !in uuids) return
             stopScan()
             cachedDevice = result.device
-            onState(State.CONNECTING, "Gefunden: ${name ?: result.device.address}")
+            onState(State.CONNECTING, context.getString(R.string.bt_found, name ?: result.device.address))
             doConnect(result.device)
         }
 
         override fun onScanFailed(errorCode: Int) {
             scanning = false
-            onState(State.ERROR, "Scan-Fehler $errorCode")
+            onState(State.ERROR, context.getString(R.string.bt_scan_error, errorCode))
         }
     }
 

@@ -39,7 +39,7 @@
 
     <string name="map_section">Map</string>
     <string name="marker_ttl_label">Objects and paths visible (minutes)</string>
-    <string name="marker_ttl_hint">1 – 999999 min. Default 5. All markers and vehicle paths are removed after this time.</string>
+    <string name="marker_ttl_hint">1 – 999999 min. Default 60 (1 h). All markers and vehicle paths are removed after this time.</string>
     <string name="dl_map">Pre-download visible area</string>
     <string name="map_dl_started">Map download starting…</string>
     <string name="map_dl_done">Map download finished</string>
@@ -48,7 +48,7 @@
 
     <string name="follow_section">Auto-follow</string>
     <string name="follow_label">Centre map automatically while moving</string>
-    <string name="follow_hint">Zoom adapts to speed: 18 standing still, 14 above 80 km/h.</string>
+    <string name="follow_hint">Map pans to follow your position. Zoom level stays as set by you.</string>
 
     <string name="audio_section">Audio feedback</string>
     <string name="audio_label">Geiger-counter mode</string>
@@ -77,8 +77,45 @@
 
     <string name="mqtt_section">MQTT</string>
     <string name="mqtt_enable">Enable MQTT</string>
-    <string name="mqtt_broker_label">Broker URL</string>
+    <string name="mqtt_broker_label">Broker addresses</string>
+    <string name="mqtt_add_broker">Add broker</string>
+    <string name="delete_broker">Remove broker</string>
     <string name="mqtt_node_label">Node ID</string>
+
+    <!-- Map layers -->
+    <string name="map_layer_title">Map layer</string>
+    <string name="map_layer_standard">Standard (OpenStreetMap)</string>
+    <string name="map_layer_dark">Dark (CartoDB)</string>
+    <string name="map_layer_satellite">Satellite (Esri)</string>
+    <string name="map_layer_transport">Public transport (ÖPNV)</string>
+    <string name="map_layer_humanitarian">Humanitarian (HOT)</string>
+
+    <!-- MQTT filter -->
+    <string name="mqtt_filter_btn">Configure message type filter…</string>
+    <string name="mqtt_filter_hint">Only checked message types are forwarded to MQTT. All types are enabled by default.</string>
+
+    <!-- Display section -->
+    <string name="display_section">Display</string>
+    <string name="keep_screen_on_label">Keep screen on</string>
+    <string name="dark_mode_label">Force dark mode</string>
+
+    <!-- Reset -->
+    <string name="reset">Reset map &amp; log</string>
+
+    <!-- Log panel toggle -->
+    <string name="toggle_log">Toggle frame log</string>
+
+    <!-- Log header stats -->
+    <string name="log_stats">%1$d pkts · %2$d/min</string>
+
+    <!-- Compass / bearing mode -->
+    <string name="compass_north_up">North up</string>
+    <string name="compass_bearing_up">Bearing up</string>
+
+    <!-- Own track -->
+    <string name="own_track_section">Own position track</string>
+    <string name="own_track_label">Plot own GPS track on map</string>
+    <string name="own_track_hint">Draws a blue line following your movement. Cleared with Reset.</string>
 
     <string name="about_section">About</string>
     <string name="about_link">Licenses / About this app</string>
@@ -90,6 +127,88 @@
     <string name="legal_body">V2X2MAP receives and logs ITS-G5 (5.9 GHz, IEEE 802.11p) radio data from vehicles and infrastructure. Receiving and processing this data is subject to national law — in particular telecommunications regulations, data-protection law and the recording of personal data. Make sure you are entitled to receive (and, where applicable, forward) this radio data in your jurisdiction before using the app. By default this app does not upload data to external servers. By tapping "Accept" you confirm that you take responsibility for compliant use.</string>
     <string name="legal_accept">Accept</string>
     <string name="legal_quit">Quit</string>
+
+    <!-- Frame detail sheet type labels -->
+    <string name="detail_type_cam">CAM – Vehicle</string>
+    <string name="detail_type_denm">DENM – Hazard warning</string>
+    <string name="detail_type_mapem">MAPEM – Intersection map</string>
+    <string name="detail_type_spatem">SPATEM – Signal phases</string>
+    <string name="detail_type_ivim">IVIM – Vehicle info</string>
+    <string name="detail_type_srem">SREM – Signal request</string>
+    <string name="detail_type_ssem">SSEM – Signal status</string>
+    <string name="detail_type_tlm">TLM – Traffic light</string>
+    <string name="detail_type_rtcmem">RTCMEM – GNSS corrections</string>
+    <string name="detail_type_unknown">Unknown</string>
+    <string name="detail_type_itsg5_unknown">ITS-G5 (unknown BTP port)</string>
+    <string name="detail_label_frame">Frame</string>
+    <string name="detail_label_time">Time</string>
+    <string name="detail_label_ethertype">EtherType</string>
+    <string name="detail_label_station">Station</string>
+    <string name="detail_label_position">Position</string>
+    <string name="detail_label_speed">Speed</string>
+    <string name="detail_label_heading">Heading</string>
+
+    <!-- Log group summaries -->
+    <string name="log_hazard">Hazard warning</string>
+    <string name="log_intersection">Intersection geometry</string>
+    <string name="log_phase_red">Red</string>
+    <string name="log_phase_yellow">Yellow</string>
+    <string name="log_phase_green">Green</string>
+    <string name="log_phase_unknown">Phase unknown</string>
+
+    <!-- USB connection states (shown in button) -->
+    <string name="usb_connecting">USB: connecting…</string>
+    <string name="usb_error_btn">USB ✗</string>
+    <string name="usb_reconnecting">USB: retry %1$d in %2$ds…</string>
+    <string name="usb_conn_lost">USB: reconnecting…</string>
+    <string name="usb_perm_request">Requesting USB permission…</string>
+    <string name="usb_perm_denied">USB permission denied</string>
+    <string name="usb_no_driver">No USB driver found</string>
+    <string name="usb_open_failed">Could not open device</string>
+
+    <!-- BT connection states (shown in button) -->
+    <string name="bt_scanning_label">BT: scanning…</string>
+    <string name="bt_connecting_label">BT: connecting…</string>
+    <string name="bt_error_btn">BT ✗</string>
+    <string name="bt_not_available">Bluetooth not available</string>
+    <string name="bt_perm_missing">BLE permission missing</string>
+    <string name="bt_searching">BT: searching for %1$s…</string>
+    <string name="bt_found">Found: %1$s</string>
+    <string name="bt_scan_error">BT scan error %1$d</string>
+    <string name="bt_reconnect">Reconnect #%1$d (%2$ds)…</string>
+    <string name="bt_perm_denied">BT: scan permission denied</string>
+    <string name="bt_scanner_na">BLE scanner not available</string>
+    <string name="bt_connect_refused">Connect refused: %1$s</string>
+    <string name="bt_setup_failed">BT setup failed</string>
+
+    <!-- Foreground service notification -->
+    <string name="notif_channel_desc">ITS-G5 reception active</string>
+    <string name="notif_running">ITS-G5 reception running</string>
+    <string name="notif_stats">%1$d packets · %2$d/min</string>
+
+    <!-- MQTT filter dialog uses these for localized type labels -->
+    <string name="msgtype_unknown">\? – Unknown</string>
+    <string name="msgtype_cam">CAM – Vehicle position</string>
+    <string name="msgtype_denm">DENM – Hazard warning</string>
+    <string name="msgtype_mapem">MAPEM – Intersection map</string>
+    <string name="msgtype_spatem">SPATEM – Signal phase &amp; timing</string>
+    <string name="msgtype_ivim">IVIM – In-vehicle info</string>
+    <string name="msgtype_srem">SREM – Signal request</string>
+    <string name="msgtype_ssem">SSEM – Signal status</string>
+    <string name="msgtype_tlm">TLM – Traffic light</string>
+    <string name="msgtype_rtcmem">RTCMEM – Correction data</string>
+
+    <!-- Hardware / LED help -->
+    <string name="hw_section">Hardware: ESP32-C5 Status-LEDs</string>
+    <string name="hw_intro">The Waveshare ESP32-C5-WIFI6-KIT has two LEDs visible during operation.</string>
+    <string name="hw_led_power_title">Power-LED (white/blue, always on)</string>
+    <string name="hw_led_power_body">Lit as long as the board receives USB power. If it is off, check the USB cable and port.</string>
+    <string name="hw_led_user_title">User-LED (GPIO 8, controlled by firmware)</string>
+    <string name="hw_led_user_body">• Off – sniffer running normally, waiting for frames.\n• Brief flash at startup – bootloader active / app initialising.\n• Solid on – board stuck in download mode. This happens when the RTS signal asserts at connection time. The app and bridge force RTS=low after opening; if you see this with a third-party serial tool, set DTR=false, RTS=false manually.</string>
+    <string name="hw_no_frames_title">No frames received although connected?</string>
+    <string name="hw_no_frames_body">The sniffer starts on channel 1 (2.4 GHz). Real ITS-G5 / V2X traffic is at 5.9 GHz — RSSI −128 dBm and zero frames is normal until the channel is changed via the UART console (GPIO 11/12, not exposed on the breakout header without a probe).\n\nA test frame (payload DEADBEEF…) is sent on every boot and appears as the first entry in the frame log — this confirms USB and firmware are working.</string>
+    <string name="hw_reset_title">Resetting the board from the app</string>
+    <string name="hw_reset_body">The USB and BT connection screens have a "Reset on start" option that pulses RTS high for 100 ms and then low again. This soft-resets the ESP32-C5 without unplugging the cable and triggers a new test frame.</string>
 
     <!-- About body -->
     <string name="about_app_name">V2X2MAP</string>

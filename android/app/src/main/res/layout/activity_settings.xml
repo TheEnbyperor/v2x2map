@@ -27,6 +27,23 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <!-- Display -->
+            <TextView
+                style="@style/Section.Header"
+                android:text="@string/display_section"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/swKeepScreenOn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/keep_screen_on_label"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/swDarkMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dark_mode_label"/>
+
             <!-- Auto-Follow -->
             <TextView
                 style="@style/Section.Header"
@@ -83,18 +100,30 @@
                 android:layout_height="wrap_content"
                 android:text="@string/mqtt_enable"/>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <!-- Dynamic broker address list — rows added/removed programmatically -->
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="@string/mqtt_broker_label">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edBrokerUrl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textUri"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                android:layout_marginBottom="2dp"
+                android:text="@string/mqtt_broker_label"
+                android:textSize="12sp"
+                android:alpha="0.7"/>
+
+            <LinearLayout
+                android:id="@+id/brokerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddBroker"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/mqtt_add_broker"
+                app:icon="@drawable/ic_add"/>
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -108,6 +137,18 @@
                     android:layout_height="wrap_content"
                     android:inputType="text"/>
             </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMqttFilter"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/mqtt_filter_btn"/>
+
+            <TextView
+                style="@style/Section.Hint"
+                android:text="@string/mqtt_filter_hint"/>
 
             <!-- Recording -->
             <TextView
@@ -159,6 +200,21 @@
                 android:layout_height="wrap_content"
                 android:text="@string/dl_map"/>
 
+            <!-- Own track -->
+            <TextView
+                style="@style/Section.Header"
+                android:text="@string/own_track_section"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/swOwnTrack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/own_track_label"/>
+
+            <TextView
+                style="@style/Section.Hint"
+                android:text="@string/own_track_hint"/>
+
             <!-- BLE Coex -->
             <TextView
                 style="@style/Section.Header"
@@ -170,6 +226,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/cycle_settings"/>
+
+            <!-- Reset -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReset"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/reset"/>
 
             <!-- About -->
             <TextView

@@ -12,14 +12,10 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Append-only file recorder for received frames. Writes the same wire format
- * as the firmware (`magic[4] + sec/usec/len + payload`) so a captured file
- * can be replayed by `bridge/its_g5_bridge.py:FrameReader` or by the app's
- * own [FrameReader] for testing.
+ * Writes received frames as a standard PCAP file (libpcap format, link type 105 =
+ * LINKTYPE_IEEE802_11 raw 802.11 frames). Files can be opened directly in Wireshark.
  *
- * One file per recording session, in `getExternalFilesDir(null)` so no extra
- * permission is needed and the user can pull it via USB / file manager from
- * `Android/data/org.opentrafficmap.receiver/files/`.
+ * Output path: Android/data/org.opentrafficmap.receiver/files/  (no extra permission)
  */
 class FrameRecorder(private val context: Context) {
 
@@ -30,18 +26,19 @@ class FrameRecorder(private val context: Context) {
     var frameCount: Int = 0
         private set
 
-    val isRecording: Boolean
-        get() = stream != null
+    val isRecording: Boolean get() = stream != null
 
-    /** Open a new file. Returns the file or null on failure. */
     fun start(): File? {
         if (stream != null) return file
         val dir = context.getExternalFilesDir(null) ?: context.filesDir
         if (!dir.exists()) dir.mkdirs()
         val ts = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
-        val f = File(dir, "frames-$ts.itsg5")
+        val f = File(dir, "itsg5-$ts.pcap")
         return try {
-            stream = BufferedOutputStream(FileOutputStream(f))
+            val out = BufferedOutputStream(FileOutputStream(f))
+            writePcapGlobalHeader(out)
+            out.flush()
+            stream = out
             file = f
             frameCount = 0
             Log.i(tag, "recording to ${f.absolutePath}")
@@ -55,15 +52,12 @@ class FrameRecorder(private val context: Context) {
     fun stop(): File? {
         val s = stream ?: return null
         return try {
-            s.flush()
-            s.close()
+            s.flush(); s.close()
             stream = null
-            val out = file
-            Log.i(tag, "stopped after $frameCount frames")
-            out
+            Log.i(tag, "stopped after $frameCount frames → ${file?.absolutePath}")
+            file
         } catch (e: Exception) {
-            Log.w(tag, "close failed", e)
-            null
+            Log.w(tag, "close failed", e); null
         }
     }
 
@@ -71,19 +65,44 @@ class FrameRecorder(private val context: Context) {
     fun append(frame: Frame) {
         val s = stream ?: return
         try {
-            val len = frame.payload.size
-            val hdr = ByteBuffer.allocate(14).order(ByteOrder.LITTLE_ENDIAN)
-            hdr.put('I'.code.toByte()); hdr.put('T'.code.toByte())
-            hdr.put('S'.code.toByte()); hdr.put('5'.code.toByte())
-            hdr.putInt(frame.sec.toInt())
-            hdr.putInt(frame.usec.toInt())
-            hdr.putShort(len.toShort())
-            s.write(hdr.array())
-            s.write(frame.payload)
+            writePcapPacket(s, frame)
             frameCount++
         } catch (e: Exception) {
-            Log.w(tag, "write failed, closing", e)
+            Log.w(tag, "write failed", e)
             stop()
         }
+    }
+
+    // ── PCAP format ────────────────────────────────────────────────────────
+
+    /** 24-byte global header (little-endian). Link type 105 = LINKTYPE_IEEE802_11. */
+    private fun writePcapGlobalHeader(out: BufferedOutputStream) {
+        val buf = ByteBuffer.allocate(24).order(ByteOrder.LITTLE_ENDIAN)
+        buf.putInt(PCAP_MAGIC)      // magic number (LE)
+        buf.putShort(2)             // version major
+        buf.putShort(4)             // version minor
+        buf.putInt(0)               // GMT offset
+        buf.putInt(0)               // timestamp accuracy
+        buf.putInt(65535)           // snaplen
+        buf.putInt(LINK_IEEE80211)  // link type: raw 802.11 (no radiotap)
+        out.write(buf.array())
+    }
+
+    /** 16-byte per-packet header + payload. */
+    private fun writePcapPacket(out: BufferedOutputStream, frame: Frame) {
+        val len = frame.payload.size
+        val hdr = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
+        hdr.putInt(frame.sec.toInt())   // ts_sec
+        hdr.putInt(frame.usec.toInt())  // ts_usec
+        hdr.putInt(len)                 // incl_len
+        hdr.putInt(len)                 // orig_len
+        out.write(hdr.array())
+        out.write(frame.payload)
+    }
+
+    companion object {
+        // 0xa1b2c3d4 stored LE → bytes d4 c3 b2 a1 → Wireshark recognises native-endian pcap
+        private val PCAP_MAGIC     = 0xa1b2c3d4.toInt()
+        private const val LINK_IEEE80211 = 105
     }
 }
