@@ -92,8 +92,8 @@ class FrameRecorder(private val context: Context) {
     private fun writePcapPacket(out: BufferedOutputStream, frame: Frame) {
         val len = frame.payload.size
         val hdr = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
-        hdr.putInt(frame.sec.toInt())   // ts_sec
-        hdr.putInt(frame.usec.toInt())  // ts_usec
+        hdr.putInt(frame.wallTime.epochSecond.toInt())   // ts_sec
+        hdr.putInt(frame.wallTime.nano)  // ts_usec
         hdr.putInt(len)                 // incl_len
         hdr.putInt(len)                 // orig_len
         out.write(hdr.array())
